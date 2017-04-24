@@ -1,0 +1,66 @@
+<html>
+	<head>
+		<script src="https://code.jquery.com/jquery-3.2.0.min.js"></script>
+		<script src="common.js" ></script>
+		<script>
+			$(document).ready(function(){
+				$('.btnLogin').click(function(){
+					$.ajax({
+						url: 'user.txt', 
+						type: "GET",   
+
+						cache: false,
+						success: function(response){                          
+							var user = JSON.parse(response).user;
+							var check = true;
+							$.each(user,function(k,v){
+								console.log(k,v);
+								if(v.username==$('[name=username]').val() && v.password==$('[name=password]').val()){
+									setCookie('user', $('[name=username]').val(), 1)
+									window.location = 'index.html';
+									check = false
+								}
+							});
+							if(check)
+							alert('pw error');
+							
+						}           
+					});  
+				})
+			})
+			
+		</script>
+		<title>
+		Login
+		</title>
+		<style>
+			.loginBorder{
+				margin: auto;
+				width: 50%;
+				border: 3px solid green;
+				padding: 10px;
+			}
+			.loginTable{
+				width:100%;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="loginBorder">
+			<h1>
+				Login
+			</h1>
+			<table class="loginTable">
+				<tr>
+					<td>Login Name</td>
+					<td><input type="text" name="username" ></td>
+				</tr>
+				<tr>
+					<td>Password</td>
+					<td><input type="password" name="password" ></td>
+				</tr>
+			</table>
+			<input type="button" value="Login" class="btnLogin" >
+		</div>
+	</body>
+</html>

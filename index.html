@@ -1,0 +1,289 @@
+<html>
+   <head>
+      <script src="https://code.jquery.com/jquery-3.2.0.min.js"></script>
+     <script src="common.js" ></script>
+      <script>
+        if(getCookie('user')==''){
+          alert('Please login');
+          window.location = 'login.html';
+        }
+         var wKey = 'b15ea6353223580b62e75727c44b8007';       //API key
+         var gKey = 'AIzaSyCUOBo4njEWERZr6lrz5tArXbNl0NpidCw';    //API key
+         
+         function getWeatherByLoc(){
+         	var loc =  document.querySelector('[name="location"]').value;
+         	var url = 'http://api.openweathermap.org/data/2.5/weather?q='+loc+'&appid='+wKey;
+         	var xmlHttp = new XMLHttpRequest();
+         	xmlHttp.open( "GET", url, false ); // false for synchronous request
+         	xmlHttp.send( null );
+         	var w = JSON.parse(xmlHttp.responseText);
+         	console.log(w);
+         	document.querySelector('.city').innerHTML = w.name;
+         	document.querySelector('.weather').innerHTML = w.weather[0].main+':'+w.weather[0].description;
+         }
+        function getList(){       //Function about list the data
+           $('.ListData').html('');
+         	var url = 'http://port-8080.nodejs-khng0228117897.codeanyapp.com/lists';
+         	$.ajax({
+         		url: url, 
+         		type: "GET",   
+ 
+         		cache: false,
+         		success: function(response){                          
+         			var data = response.data;
+              $('.ListData').append('<tr><th>Location</th><th>Weather, Start point, End point</th><th>Action</th></tr>')
+              $.each(data,function(k,v){             
+                if(v.username == getCookie('user')){
+                 $('.ListData').append('<tr><th>'+v.name+'</th><th>'+v.items.toString()+'</th><th><input type="button" value="DEL" onclick="delList(\''+v._id+'\')" ></th></tr>')
+                }
+              });
+             
+         		}           
+         	});  
+        }
+        function addList(){         //Function about add data to database
+          if($('.type').val()==''||$('.data1').val()==''||$('.data2').val()==''||$('.data3').val()==''){
+            alert('please type something');
+            return false;
+          }
+          console.log('add');
+          	var url = 'http://port-8080.nodejs-khng0228117897.codeanyapp.com/add';
+         	$.ajax({
+            dataType:'json',
+         		url: url, 
+         		type: "POST",   
+            data:{
+              username:getCookie('user'), //username
+                name: $('.type').val(),   //Location
+                item1: $('.data1').val(),  //Weather
+              item2: $('.data2').val(),   //Start Point
+              item3: $('.data3').val(),   //End Point
+            },
+         		cache: false,
+         		success: function(response){                          
+                  getList();
+             
+         		}           
+         	});  
+        }
+        function delList(id){         //Function about del data to database
+          console.log('del');
+          	var url = 'http://port-8080.nodejs-khng0228117897.codeanyapp.com/update/'+id;
+         	$.ajax({
+            dataType:'json',
+         		url: url, 
+         		type: "POST",   
+            data:{
+              username:'a', //username
+                name: 'a',   //Location
+                item1: 'a',  //Weather
+              item2: 'a',   //Start Point
+              item3: 'a',   //End Point
+            },
+         		cache: false,
+         		success: function(response){                          
+                  getList();
+             
+         		}           
+         	});  
+        }
+        function logout(){
+          setCookie('user', '', 1);
+          window.location = 'login.html';
+        }
+         getList();
+      </script>
+      <style>
+        table th{
+          border:1px solid
+        }
+        table{
+          border:1px solid
+        }
+        body{
+          background:rgba(255, 220, 0, 0.21);
+          overflow: scroll;
+        }
+        
+     </style>
+      <style>
+         html, body {
+         height: 100%;
+         margin: 0;
+         padding: 0;
+         }
+         #map {
+         height: 50%;
+         }
+         #warnings-panel {
+         width: 100%;
+         height:10%;
+         text-align: center;
+         }
+         #floating-panel {
+         z-index: 5;
+         background-color: #fff;
+         padding: 5px;
+         border: 1px solid #999;
+         text-align: center;
+         font-family: 'Roboto','sans-serif';
+         line-height: 30px;
+         padding-left: 10px;
+         }
+      </style>
+   </head>
+   <body>
+     <h1>Weather by location           <button onclick="logout()">Logout</button></h1>
+      <table>
+         <tr>
+            <th>
+               Location
+            </th>
+            <td>
+               <input type="text" name="location">
+            </td>
+         </tr>
+         <tr>
+            <td>
+               <input type="button" name="" value="search" onclick="getWeatherByLoc()">
+            </td>
+         </tr>
+      </table>
+      <h1>Weather by location result:</h1>
+      <table>
+         <tr>
+            <th>City</th>
+            <td><span class="city"></span></td>
+         </tr>
+         <tr>
+            <th>Weather</th>
+            <td><span class="weather"></span></td>
+         </tr>
+      </table>
+     <center><h1>Map</h1></center>
+      <div id="floating-panel">
+         <b>Start: </b>
+         <select id="start">   <!--The fix data to select-->
+            <option value="hong kong station, hong kong, hk">Hong Kong Station</option>
+            <option value="wan chai station, wai chai, hk">Wan Chai Station</option>
+            <option value="kwai fong station, kwai fong, hk">Kwai Fong Station</option>
+            <option value="chai wan station, chai wan, hk">Chai Wan Station</option>
+            <option value="tung chung station, tung chun, hk">Tung Chung Station</option>
+         </select>
+         <b>End: </b>
+         <select id="end">    <!--The fix data to select-->
+            <option value="mong kok, kowloon, hk">Mong Kok</option>
+            <option value="6 Oi Kwan Road Wan Chai, hk">Morrison Hill IVE</option>
+            <option value="20 Tsing Yi Road Tsing Yi Island, New Territories, hk">Tsing Yi IVE</option>
+            <option value="30 Shing Tai Road, Chai Wan, Hong Kong">Chai Wan IVE</option>
+            <option value="21 Sky Plaza Road, Hong Kong International Airport, Lantau, Hong Kong">Hong Kong International Airport</option>
+         </select>
+      </div>
+      <div id="map"></div>
+      &nbsp;
+      <div id="warnings-panel"></div>
+      <script>
+         function initMap() {
+           var markerArray = [];
+         
+           // Instantiate a directions service.
+           var directionsService = new google.maps.DirectionsService;
+         
+           // Create a map and center it on Manhattan.
+           var map = new google.maps.Map(document.getElementById('map'), {
+             zoom: 1,
+             center: {lat: 40.771, lng: -73.974}
+           });
+         
+           // Create a renderer for directions and bind it to the map.
+           var directionsDisplay = new google.maps.DirectionsRenderer({map: map}); 
+         
+           // Instantiate an info window to hold step text.
+           var stepDisplay = new google.maps.InfoWindow;
+         
+           // Display the route between the initial start and end selections.
+           calculateAndDisplayRoute(
+               directionsDisplay, directionsService, markerArray, stepDisplay, map);
+           // Listen to change events from the start and end lists.
+           var onChangeHandler = function() {
+             calculateAndDisplayRoute(
+                 directionsDisplay, directionsService, markerArray, stepDisplay, map);
+           };
+           document.getElementById('start').addEventListener('change', onChangeHandler);
+           document.getElementById('end').addEventListener('change', onChangeHandler);
+         }
+         
+         function calculateAndDisplayRoute(directionsDisplay, directionsService,
+             markerArray, stepDisplay, map) {
+           // First, remove any existing markers from the map.
+           for (var i = 0; i < markerArray.length; i++) {
+             markerArray[i].setMap(null);
+           }
+         
+           // Retrieve the start and end locations and create a DirectionsRequest using
+           // WALKING directions.
+           directionsService.route({
+             origin: document.getElementById('start').value,
+             destination: document.getElementById('end').value,
+             travelMode: google.maps.TravelMode.WALKING
+           }, function(response, status) {
+             // Route the directions and pass the response to a function to create
+             // markers for each step.
+             if (status === google.maps.DirectionsStatus.OK) {
+               document.getElementById('warnings-panel').innerHTML =
+                   '<b>' + response.routes[0].warnings + '</b>';
+               directionsDisplay.setDirections(response);
+               showSteps(response, markerArray, stepDisplay, map);
+             } else {
+               window.alert('Directions request failed due to ' + status);
+             }
+           });
+         }
+         
+         function showSteps(directionResult, markerArray, stepDisplay, map) {
+           // For each step, place a marker, and add the text to the marker's infowindow.
+           // Also attach the marker to an array so we can keep track of it and remove it
+           // when calculating new routes.
+           var myRoute = directionResult.routes[0].legs[0];
+           for (var i = 0; i < myRoute.steps.length; i++) {
+             var marker = markerArray[i] = markerArray[i] || new google.maps.Marker;
+             marker.setMap(map);
+             marker.setPosition(myRoute.steps[i].start_location);
+             attachInstructionText(
+                 stepDisplay, marker, myRoute.steps[i].instructions, map);
+           }
+         }
+         
+         function attachInstructionText(stepDisplay, marker, text, map) {
+           google.maps.event.addListener(marker, 'click', function() {
+             // Open an info window when the marker is clicked on, containing the text
+             // of the step.
+             stepDisplay.setContent(text);
+             stepDisplay.open(map, marker);
+           });
+         }
+         
+             
+      </script>
+      <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCUOBo4njEWERZr6lrz5tArXbNl0NpidCw&signed_in=true&callback=initMap"
+         async defer></script>
+     <div>
+       <div class="" >
+         <div>Location <input type='text' class="type" /></div>
+         <div>
+           Weather <input type='text' class="data1" />
+         </div>
+          <div>
+           Start point <input type='text' class="data2" />
+         </div>
+          <div>
+           End point <input type='text' class="data3" />
+         </div>
+                  <div>
+          <input type='button' onclick="addList()" value="add"/>
+         </div>
+       </div>
+       <table class="ListData"></table>
+     </div>
+   </body>
+</html>
